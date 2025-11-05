@@ -2,6 +2,15 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import swaggerUi from "swagger-ui-express";
+import YAML from "yamljs";
+
+dotenv.config();
+
+// OpenAPI config
+const swaggerDocument = YAML.load("./openapi.yaml");
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 import routes from "./src/routes.js";
 
