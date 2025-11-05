@@ -7,6 +7,8 @@ import YAML from "yamljs";
 
 dotenv.config();
 
+import routes from "./src/routes.js";
+
 dotenv.config();
 
 const app = express();
@@ -16,8 +18,6 @@ const port = process.env.PORT || 3001;
 const swaggerDocument = YAML.load("./openapi.yaml");
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-
-import routes from "./src/routes.js";
 
 // Define CORS options to allow requests from the specified origin and include credentials
 // This is crucial when using HTTP cookies for authentication, as cookies are not shared across domains by default
