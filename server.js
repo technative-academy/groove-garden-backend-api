@@ -19,6 +19,11 @@ const swaggerDocument = YAML.load("./openapi.yaml");
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
+// Health check
+app.get("/", (req, res) => {
+  res.status(200).json({ status: "ok", message: "Server is running" });
+});
+
 // Define CORS options to allow requests from the specified origin and include credentials
 // This is crucial when using HTTP cookies for authentication, as cookies are not shared across domains by default
 // Includes credentials (such as cookies) in requests and responses
@@ -36,3 +41,5 @@ app.use("/api", routes);
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+
+export default app;
