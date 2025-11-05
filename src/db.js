@@ -9,6 +9,17 @@ const isTestEnv = process.env.NODE_ENV === "test";
 
 // Create a new pool instance for managing database connections
 // Use different environment variables depending on whether it's a test environment
+const connectionString = process.env.DB_URL;
+
+if (connectionString) {
+  try {
+    const pool = new Pool({
+      connectionString: connectionString,
+    });
+  } catch (error) {
+    console.error("Error creating database pool:", error);
+  }
+}
 const pool = new Pool({
   user: isTestEnv ? process.env.TEST_DB_USER : process.env.DB_USER,
   host: isTestEnv ? process.env.TEST_DB_HOST : process.env.DB_HOST,
