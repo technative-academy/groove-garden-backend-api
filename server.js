@@ -1,18 +1,14 @@
 import express from "express";
 import dotenv from "dotenv";
+dotenv.config();
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
-
-dotenv.config();
-
 import routes from "./src/routes.js";
 
-dotenv.config();
-
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 4000;
 
 // OpenAPI config
 const swaggerDocument = YAML.load("./openapi.yaml");
