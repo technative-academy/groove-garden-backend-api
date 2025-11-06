@@ -12,9 +12,7 @@ CREATE TABLE artists (
 
 CREATE TABLE albums (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    release_date DATE,
-    artist_id INT REFERENCES artists(id)
+    name VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE songs (
@@ -27,45 +25,40 @@ CREATE TABLE songs (
 );
 
 -- Insert Artists
-INSERT INTO artists (name) VALUES
-('The Midnight Riders');
+INSERT INTO artists (id, name) VALUES
+('The Midnight Riders'),
+('Luna Park'),
+('Digital Dreams'),
+('Acoustic Soul'),
+('Electric Avenue');
 
 -- Insert Albums
-INSERT INTO albums (name, artist_id, release_date) VALUES
-('Highway Chronicles', 1, '2023-01-01');
+INSERT INTO albums (id, name) VALUES
+('Highway Chronicles'),
+('Moonlit Melodies'),
+('Binary Beats'),
+('Unplugged Sessions'),
+('Neon Nights');
 
 -- Insert Songs
-INSERT INTO songs (title, artist_id, album_id, release_date, link) VALUES
-('Road to Nowhere', 1, 1, '2023-03-15', 'https://example.com/songs/road-to-nowhere');
-
--- Drop users table if exists
-DROP TABLE IF EXISTS users;
-
--- Create Users Table
-CREATE TABLE users (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    username VARCHAR(20) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Insert Test Users
-INSERT INTO users (username, email, password, created_at)
-VALUES ('john_doe', 'testemail@email.com', 'password123', NOW());
-
--- Create Playlists Table
-CREATE TABLE playlists (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    description VARCHAR(255) DEFAULT 'None',
-    created_by_user_id INT REFERENCES users(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Create Playlist_song Table
-CREATE TABLE playlist_song (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    playlist_id int references playlists(id),
-    song_id int references songs(id)
-);
+INSERT INTO songs (id, title, artist_id, album_id, release_date, link) VALUES
+('Road to Nowhere', 1, 1, '2023-03-15', 'https://example.com/songs/road-to-nowhere'),
+('Sunset Drive', 1, 1, '2023-03-15', 'https://example.com/songs/sunset-drive'),
+('Midnight Blues', 1, 1, '2023-03-15', 'https://example.com/songs/midnight-blues'),
+('Starlight', 2, 2, '2023-06-20', 'https://example.com/songs/starlight'),
+('Dancing in the Dark', 2, 2, '2023-06-20', 'https://example.com/songs/dancing-dark'),
+('Moonbeam', 2, 2, '2023-06-20', 'https://example.com/songs/moonbeam'),
+('Pixel Paradise', 3, 3, '2024-01-10', 'https://example.com/songs/pixel-paradise'),
+('Code Red', 3, 3, '2024-01-10', 'https://example.com/songs/code-red'),
+('Virtual Reality', 3, 3, '2024-01-10', 'https://example.com/songs/virtual-reality'),
+('Whisper', 4, 4, '2023-09-05', 'https://example.com/songs/whisper'),
+('Coffee Shop Serenade', 4, 4, '2023-09-05', 'https://example.com/songs/coffee-shop'),
+('Rainy Day', 4, 4, '2023-09-05', 'https://example.com/songs/rainy-day'),
+('Neon Lights', 5, 5, '2024-02-14', 'https://example.com/songs/neon-lights'),
+('Electric Heart', 5, 5, '2024-02-14', 'https://example.com/songs/electric-heart'),
+('Thunder Road', 5, 5, '2024-02-14', 'https://example.com/songs/thunder-road'),
+('Summer Breeze', 1, 1, '2023-07-01', 'https://example.com/songs/summer-breeze'),
+('City Lights', 2, 2, '2023-08-12', 'https://example.com/songs/city-lights'),
+('Digital Love', 3, 3, '2024-03-01', 'https://example.com/songs/digital-love'),
+('Acoustic Dreams', 4, 4, '2023-10-20', 'https://example.com/songs/acoustic-dreams'),
+('Voltage', 5, 5, '2024-04-05', 'https://example.com/songs/voltage');
