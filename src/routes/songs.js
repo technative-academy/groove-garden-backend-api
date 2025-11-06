@@ -6,8 +6,9 @@ const router = express.Router();
 // GET /songs -> list all songs
 router.get("/", async (req, res) => {
   try {
+    console.log("SEND ALL SONGS");
     const result = await pool.query(
-      `SELECT  songs.title AS song_name,  artists.name AS artist_name,  albums.name AS album_name,  songs.release_date,  songs.link FROM songs JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id ORDER BY songs.release_date DESC;`
+      `SELECT  songs.title AS song_name,  artists.name AS artist_name,  albums.name AS album_name,  songs.release_date,  songs.link FROM songs JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id ORDER BY songs.release_date DESC`
     );
     res.json(result.rows);
   } catch (error) {
