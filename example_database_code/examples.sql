@@ -1,6 +1,7 @@
 -- run 'psql -f example_database_code/examples.sql' in terminal to seed example database
 DROP DATABASE IF EXISTS example_database;
 CREATE DATABASE example_database;
+\c example_database;
 
 
 CREATE TABLE artists (
