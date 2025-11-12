@@ -26,16 +26,4 @@ router.get("/:id", authenticateToken, async (req, res) => {
   }
 });
 
-router.get("/:id/things", authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  try {
-    const result = await pool.query("SELECT * FROM things WHERE user_id = $1", [
-      id,
-    ]);
-    res.json(result.rows);
-  } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
 export default router;
