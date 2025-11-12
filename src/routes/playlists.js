@@ -4,7 +4,7 @@ import authenticateToken from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/", authenticateToken, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM playlists");
     res.json(result.rows);
@@ -49,6 +49,29 @@ router.get("/:id", authenticateToken, async (req, res) => {
 });
 
 router.post("/", authenticateToken, async (req, res) => {
+  const userId = req.user.id;
+  const { title, description } = req.body;
+
+  if (!title) {
+    return res.status(400).json({ error: "Title is required" });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO playlists (title, description, created_by_user_id)
+       VALUES ($1, $2, $3)
+       RETURNING *`,
+      [title, description || "None", userId]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error("Error creating playlist:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.post("/add_to_playlist", authenticateToken, async (req, res) => {
   const { playlist_id, song_id } = req.body;
   const userId = req.user.id;
   if (!playlist_id || !song_id) {
