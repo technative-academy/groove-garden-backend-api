@@ -35,4 +35,24 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+router.post("/", async (req, res) => {
+  const { playlist_id, song_id } = req.body;
+  if (!playlist_id || !song_id) {
+    return res
+      .status(400)
+      .json({ error: "playlist_id and song_id are required" });
+  }
+  const result = await pool.query(
+    `INSERT INTO playlist_song (playlist_id, song_id)
+       VALUES ($1, $2)
+       RETURNING *`,
+    [playlist_id, song_id]
+  );
+  try {
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error("Error adding song to playlist:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 export default router;
