@@ -61,3 +61,16 @@ INSERT INTO songs (id, title, artist_id, album_id, release_date, link) VALUES
 (18, 'Digital Love', 3, 3, '2024-03-01', 'https://example.com/songs/digital-love'),
 (19, 'Acoustic Dreams', 4, 4, '2023-10-20', 'https://example.com/songs/acoustic-dreams'),
 (20, 'Voltage', 5, 5, '2024-04-05', 'https://example.com/songs/voltage');
+
+DROP table if exists users;
+CREATE TABLE users (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    username VARCHAR(20) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+-- Insert Test Users
+INSERT INTO users (username, email, password, created_at) VALUES
+('john_doe','testemail@email.com', 'password123', NOW())
+
