@@ -40,7 +40,7 @@ router.get("/:id", authenticateToken, async (req, res) => {
       [id]
     );
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Thing not found" });
+      return res.status(404).json({ error: "playlist not found" });
     }
     res.json(result.rows[0]);
   } catch (error) {
@@ -106,6 +106,49 @@ router.post("/add_to_playlist", authenticateToken, async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error("Error adding song to playlist:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.delete("/delete_from_playlist", authenticateToken, async (req, res) => {
+  const { playlist_id, song_id } = req.body;
+  const userId = req.user.id;
+  if (!playlist_id || !song_id) {
+    return res
+      .status(400)
+      .json({ error: "playlist_id and song_id are required" });
+  }
+  try {
+    const ownerCheck = await pool.query(
+      `SELECT created_by_user_id 
+       FROM playlists 
+       WHERE id = $1`,
+      [playlist_id]
+    );
+
+    if (ownerCheck.rows.length === 0) {
+      return res.status(404).json({ error: "Playlist not found" });
+    }
+
+    if (ownerCheck.rows[0].created_by_user_id !== userId) {
+      return res
+        .status(403)
+        .json({ error: "You do not have permission to modify this playlist" });
+    }
+
+    const result = await pool.query(
+      `DELETE FROM playlist_song
+       WHERE playlist_id = $1 AND song_id = $2
+       RETURNING *`,
+      [playlist_id, song_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Song not found in this playlist" });
+    }
+    res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error("Error removing song from playlist:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
