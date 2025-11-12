@@ -71,14 +71,9 @@ router.post("/", authenticateToken, async (req, res) => {
   }
 });
 
-router.post("/add_to_playlist", authenticateToken, async (req, res) => {
-  const { playlist_id, song_id } = req.body;
+router.post("/:playlist_id/:song_id", authenticateToken, async (req, res) => {
+  const { playlist_id, song_id } = req.params;
   const userId = req.user.id;
-  if (!playlist_id || !song_id) {
-    return res
-      .status(400)
-      .json({ error: "playlist_id and song_id are required" });
-  }
   try {
     const ownerCheck = await pool.query(
       `SELECT created_by_user_id 
@@ -110,14 +105,10 @@ router.post("/add_to_playlist", authenticateToken, async (req, res) => {
   }
 });
 
-router.delete("/delete_from_playlist", authenticateToken, async (req, res) => {
-  const { playlist_id, song_id } = req.body;
+router.delete("/:playlist_id/:song_id", authenticateToken, async (req, res) => {
+  const { playlist_id, song_id } = req.params;
   const userId = req.user.id;
-  if (!playlist_id || !song_id) {
-    return res
-      .status(400)
-      .json({ error: "playlist_id and song_id are required" });
-  }
+
   try {
     const ownerCheck = await pool.query(
       `SELECT created_by_user_id 
@@ -146,10 +137,12 @@ router.delete("/delete_from_playlist", authenticateToken, async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Song not found in this playlist" });
     }
-    res.status(200).json(result.rows[0]);
+
+    res.status(200).json(result.rows[0]); // Return the deleted row
   } catch (error) {
     console.error("Error removing song from playlist:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 export default router;
