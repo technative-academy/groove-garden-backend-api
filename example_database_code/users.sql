@@ -1,4 +1,4 @@
-DROP table if exists users;
+DROP table if exists users CASCADE;
 CREATE TABLE users (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     username VARCHAR(20) NOT NULL UNIQUE,
