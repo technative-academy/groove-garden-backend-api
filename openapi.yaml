@@ -134,6 +134,14 @@ components:
         description:
           type: string
 
+    UpdatePlaylistRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+
     CreateArtistRequest:
       type: object
       required: [name]
@@ -416,6 +424,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Playlist'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404':
+          description: Playlist not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags: [Playlists]
+      summary: Update playlist
+      description: Updates playlist title and/or description; only the owner may update
+      operationId: updatePlaylist
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePlaylistRequest'
+      responses:
+        '200':
+          description: Updated playlist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Playlist'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401': { $ref: '#/components/responses/UnauthorizedError' }
         '403': { $ref: '#/components/responses/ForbiddenError' }
         '404':
