@@ -33,6 +33,33 @@ router.post("/", authenticateToken, async (req, res) => {
   }
 });
 
+// PATCH /artists/:id -> update an artist (auth required)
+router.patch("/:id", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  if (name === undefined) {
+    return res.status(400).json({ error: "At least one field is required (name)" });
+  }
+  if (name !== undefined && (typeof name !== "string" || !name.trim())) {
+    return res.status(400).json({ error: "'name' must be a non-empty string" });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      "UPDATE artists SET name = $2 WHERE id = $1 RETURNING *",
+      [id, name?.trim()]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Artist not found" });
+    }
+    return res.status(200).json(rows[0]);
+  } catch (error) {
+    console.error("PATCH /artists/:id failed:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 // DELETE /artists/:id -> delete an artist by id (auth required)
 router.delete("/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;

@@ -29,7 +29,7 @@ INSERT INTO artists (name) VALUES
 ('The Midnight Riders');
 
 -- Insert Albums
-INSERT INTO albums (name, artist_id) VALUES
+INSERT INTO albums (name, artist_id, release date) VALUES
 ('Highway Chronicles', 1);
 
 -- Insert Songs
