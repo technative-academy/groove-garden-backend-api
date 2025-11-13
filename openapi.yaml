@@ -1,205 +1,767 @@
-openapi: 3.0.3
+﻿openapi: 3.0.3
 info:
-  title: Products API
-  description: CRUD API for managing products with pagination, filtering, and validation.
+  title: Groove Garden Backend API
+  description: API for authentication, users, playlists, and artists
   version: 1.0.0
 servers:
-  - url: https://node-challenge-production.up.railway.app
-    description: Production (Railway)
+  - url: http://localhost:4000/api
+    description: Local development server
+
 tags:
-  - name: Products
-    description: Product management endpoints
-paths:
-  /products:
-    get:
-      summary: List all products
-      tags: [Products]
-      parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-          description: Page number (1-based)
-        - name: per_page
-          in: query
-          schema:
-            type: integer
-            default: 10
-            minimum: 1
-            maximum: 100
-          description: Number of items per page
-        - name: name
-          in: query
-          schema:
-            type: string
-          description: Filter by name substring (case-insensitive)
-        - name: min_price
-          in: query
-          schema:
-            type: number
-            minimum: 0
-          description: Minimum product price
-        - name: max_price
-          in: query
-          schema:
-            type: number
-            minimum: 0
-          description: Maximum product price
-        - name: sort_by
-          in: query
-          schema:
-            type: string
-            enum: [id, name, price]
-          description: Field to sort by
-        - name: sort_dir
-          in: query
-          schema:
-            type: string
-            enum: [asc, desc]
-          description: Sort direction
-      responses:
-        "200":
-          description: A paginated list of products
-          content:
-            json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Product"
-                  meta:
-                    type: object
-                    properties:
-                      page:
-                        type: integer
-                      per_page:
-                        type: integer
-                      total:
-                        type: integer
-                      total_pages:
-                        type: integer
-                      sort_by:
-                        type: string
-                      sort_dir:
-                        type: string
-        "422":
-          description: Validation failed
-    post:
-      summary: Create a new product
-      tags: [Products]
-      requestBody:
-        required: true
-        content:
-          json:
-            schema:
-              $ref: "#/components/schemas/NewProduct"
-      responses:
-        "201":
-          description: Product created
-          content:
-            json:
-              schema:
-                $ref: "#/components/schemas/Product"
-        "422":
-          description: Validation failed
-  /products/{id}:
-    get:
-      summary: Get a product by ID
-      tags: [Products]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Product found
-          content:
-            json:
-              schema:
-                $ref: "#/components/schemas/Product"
-        "404":
-          description: Product not found
-        "422":
-          description: Invalid ID
-    patch:
-      summary: Update a product (partial)
-      tags: [Products]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          json:
-            schema:
-              $ref: "#/components/schemas/UpdateProduct"
-      responses:
-        "200":
-          description: Updated product
-          content:
-            json:
-              schema:
-                $ref: "#/components/schemas/Product"
-        "404":
-          description: Product not found
-        "422":
-          description: Validation failed
-    delete:
-      summary: Delete a product
-      tags: [Products]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "204":
-          description: Product deleted successfully
-        "404":
-          description: Product not found
-        "422":
-          description: Invalid ID
+  - name: Auth
+    description: Authentication and authorization endpoints
+  - name: Users
+    description: User management endpoints
+  - name: Playlists
+    description: Playlist management endpoints
+  - name: Artists
+    description: Artist management endpoints
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from /auth/login
+
   schemas:
-    Product:
+    User:
       type: object
       properties:
         id:
           type: integer
+          example: 1
+        username:
+          type: string
+          example: johndoe
+        email:
+          type: string
+          format: email
+          example: john@example.com
+    Song:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+        artist_id:
+          type: integer
+          example: 1
+        album_id:
+          type: integer
+          example: 1
+        release_date: 
+          type: string
+          example: 2023-03-15
+        link: 
+          type: string
+
+    Playlist:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: My Favorite Songs
+        description:
+          type: string
+          example: A collection of my favorite tracks
+        created_by_user_id:
+          type: integer
+          example: 1
+
+    PlaylistSong:
+      type: object
+      properties:
+        playlist_id:
+          type: integer
+          example: 1
+        song_id:
+          type: integer
+          example: 42
+
+    Artist:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
         name:
           type: string
-        price:
-          type: number
-          format: float
-    NewProduct:
+          example: Daft Punk
+
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          example: johndoe
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: SecurePassword123
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        password:
+          type: string
+          format: password
+          example: SecurePassword123
+
+    LoginResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: johndoe
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    RefreshTokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    CreatePlaylistRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          example: Summer Vibes
+        description:
+          type: string
+          example: Perfect songs for summer days
+    
+    AddSongRequest:
+      type: object
+      required:
+        - title
+        - artist
+      properties:
+        title:
+          type: string
+        artist:
+          type: string
+
+    CreateArtistRequest:
       type: object
       required:
         - name
-        - price
       properties:
         name:
           type: string
-          maxLength: 255
-        price:
-          type: number
-          minimum: 0
-          format: float
-    UpdateProduct:
+          example: Daft Punk
+
+    Error:
       type: object
       properties:
-        name:
+        error:
           type: string
-          maxLength: 255
-        price:
-          type: number
-          minimum: 0
-          format: float
+          example: An error occurred
+
+    Message:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Operation successful
+
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Unauthorized
+
+    ForbiddenError:
+      description: Access token is invalid or expired
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Forbidden
+
+    NotFoundError:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Resource not found
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Internal Server Error
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      description: Creates a new user account with username, email, and password
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request - validation error or email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      description: Authenticates user and returns access token. Sets refresh token as HttpOnly cookie.
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Set-Cookie:
+              description: Refresh token stored as HttpOnly cookie
+              schema:
+                type: string
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/refresh-token:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      description: Uses refresh token from HttpOnly cookie to generate a new access token
+      operationId: refreshToken
+      parameters:
+        - in: cookie
+          name: refreshToken
+          required: true
+          schema:
+            type: string
+          description: Refresh token stored in HttpOnly cookie
+      responses:
+        '200':
+          description: New access token generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshTokenResponse'
+        '401':
+          description: Refresh token is missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Refresh token is invalid or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout user
+      description: Clears the refresh token cookie
+      operationId: logoutUser
+      responses:
+        '200':
+          description: Successfully logged out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+
+  /users:
+    get:
+      tags: [Users]
+      summary: Get all users
+      description: Retrieves a list of all users (requires authentication)
+      operationId: getAllUsers
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of all users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /users/{id}:
+    get:
+      tags: [Users]
+      summary: Get user by ID
+      description: Retrieves a specific user by their ID (requires authentication)
+      operationId: getUserById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+    /songs:
+    get:
+      tags:
+        - Songs
+      summary: Get all songs
+      description: Retrieves all songs (public endpoint, no authentication required)
+      operationId: getAllSongs
+      responses:
+        '200':
+          description: List of all songs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Song'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - Songs
+      summary: Add a new song
+      description: Adds a new song to the database
+      operationId: addSong
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddSongRequest'
+      responses:
+        '201':
+          description: Playlist successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Playlist'
+        '400':
+          description: Bad request - title is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Title is required
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+          
+  /songs/{id}:
+    get:
+      tags:
+        - Songs
+      summary: Get song by id
+      description: Retrieves song by id (public endpoint, no authentication required)
+      operationId: getSong
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: song ID
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: song by id
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Song'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /playlists:
+    get:
+      tags: [Playlists]
+      summary: Get all playlists
+      description: Retrieves all playlists (public endpoint, no authentication required)
+      operationId: getAllPlaylists
+      responses:
+        '200':
+          description: List of all playlists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Playlist'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags: [Playlists]
+      summary: Create a new playlist
+      description: Creates a new playlist for the authenticated user
+      operationId: createPlaylist
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePlaylistRequest'
+      responses:
+        '201':
+          description: Playlist successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Playlist'
+        '400':
+          description: Bad request - title is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /playlists/my_playlists:
+    get:
+      tags: [Playlists]
+      summary: Get current user's playlists
+      description: Retrieves all playlists created by the authenticated user
+      operationId: getMyPlaylists
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of user's playlists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Playlist'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /playlists/{id}:
+    get:
+      tags: [Playlists]
+      summary: Get playlist by ID
+      description: Retrieves a specific playlist by its ID (requires authentication)
+      operationId: getPlaylistById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Playlist ID
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Playlist details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Playlist'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Playlist not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /playlists/{playlist_id}/{song_id}:
+    post:
+      tags: [Playlists]
+      summary: Add song to playlist
+      description: Adds a song to a playlist (only the playlist owner can do this)
+      operationId: addSongToPlaylist
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: playlist_id
+          in: path
+          required: true
+          description: Playlist ID
+          schema:
+            type: integer
+            example: 1
+        - name: song_id
+          in: path
+          required: true
+          description: Song ID
+          schema:
+            type: integer
+            example: 42
+      responses:
+        '201':
+          description: Song successfully added to playlist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaylistSong'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: User does not have permission to modify this playlist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Playlist not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags: [Playlists]
+      summary: Remove song from playlist
+      description: Removes a song from a playlist (only the playlist owner can do this)
+      operationId: removeSongFromPlaylist
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: playlist_id
+          in: path
+          required: true
+          description: Playlist ID
+          schema:
+            type: integer
+            example: 1
+        - name: song_id
+          in: path
+          required: true
+          description: Song ID
+          schema:
+            type: integer
+            example: 42
+      responses:
+        '200':
+          description: Song successfully removed from playlist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaylistSong'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: User does not have permission to modify this playlist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Playlist or song not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /artists:
+    get:
+      tags: [Artists]
+      summary: List artists
+      description: Retrieves all artists
+      operationId: listArtists
+      responses:
+        '200':
+          description: List of artists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Artist'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags: [Artists]
+      summary: Create artist
+      description: Creates a new artist
+      operationId: createArtist
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateArtistRequest'
+      responses:
+        '201':
+          description: Artist created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artist'
+        '400':
+          description: Missing or invalid name
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /artists/{id}:
+    delete:
+      tags: [Artists]
+      summary: Delete artist
+      description: Deletes an artist by ID
+      operationId: deleteArtist
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Deleted artist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artist'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Artist not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
