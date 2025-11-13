@@ -85,6 +85,60 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// PATCH /albums/:id -> update album fields (auth required)
+router.patch("/:id", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { name, artist_id, release_date } = req.body;
+
+  const updates = [];
+  const values = [];
+
+  if (name !== undefined) {
+    if (typeof name !== "string" || !name.trim()) {
+      return res.status(400).json({ error: "'name' must be a non-empty string" });
+    }
+    updates.push(`name = $${updates.length + 1}`);
+    values.push(name.trim());
+  }
+
+  if (artist_id !== undefined) {
+    if (!Number.isInteger(artist_id)) {
+      return res.status(400).json({ error: "'artist_id' must be an integer if provided" });
+    }
+    updates.push(`artist_id = $${updates.length + 1}`);
+    values.push(artist_id);
+  }
+
+  if (release_date !== undefined) {
+    if (typeof release_date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(release_date)) {
+      return res
+        .status(400)
+        .json({ error: "'release_date' must be a string in format YYYY-MM-DD if provided" });
+    }
+    updates.push(`release_date = $${updates.length + 1}`);
+    values.push(release_date);
+  }
+
+  if (updates.length === 0) {
+    return res.status(400).json({ error: "At least one field must be provided to update" });
+  }
+
+  try {
+    const query = `UPDATE albums SET ${updates.join(", ")} WHERE id = $${updates.length + 1} RETURNING *`;
+    const { rows } = await pool.query(query, [...values, id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Album not found" });
+    }
+    return res.status(200).json(rows[0]);
+  } catch (error) {
+    console.error("PATCH /albums/:id failed:", error);
+    if (error && error.code === "22007") {
+      return res.status(400).json({ error: "Invalid 'release_date' value" });
+    }
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 // DELETE /albums/:id -> delete an album by id (auth required)
 router.delete("/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;

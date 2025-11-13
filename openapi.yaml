@@ -162,6 +162,17 @@ components:
           format: date
           description: Optional; release date (YYYY-MM-DD)
 
+    UpdateAlbumRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        artist_id:
+          type: integer
+        release_date:
+          type: string
+          format: date
+
     Error:
       type: object
       properties:
@@ -652,6 +663,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Album'
+        '404':
+          description: Album not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags: [Albums]
+      summary: Update album
+      operationId: updateAlbum
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAlbumRequest'
+      responses:
+        '200':
+          description: Updated album
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Album'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
         '404':
           description: Album not found
           content:
