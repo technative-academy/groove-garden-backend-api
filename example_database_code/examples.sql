@@ -3,7 +3,7 @@ DROP DATABASE IF EXISTS example_database;
 CREATE DATABASE example_database;
 \c example_database;
 
-
+:
 CREATE TABLE artists (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL
