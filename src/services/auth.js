@@ -53,7 +53,7 @@ const loginUser = async (email, password) => {
 
     return {
       id: user.id,
-      username: user.name,
+      username: user.username,
       accessToken,
       refreshToken,
     };
@@ -70,7 +70,11 @@ const refreshAccessToken = async (refreshToken) => {
       refreshToken,
       process.env.REFRESH_TOKEN_SECRET
     );
-    const userData = { id: user.id, email: user.email };
+    const userData = {
+      id: user.id,
+      email: user.email,
+      username: user.usernmae,
+    };
     // Generate and return a new access token
     return generateAccessToken(userData);
   } catch (err) {
