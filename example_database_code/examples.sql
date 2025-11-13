@@ -1,9 +1,9 @@
--- run 'psql -f example_database_code/examples.sql' in terminal to seed example database
-DROP DATABASE IF EXISTS example_database;
-CREATE DATABASE example_database;
-\c example_database;
+-- Run manually: DROP DATABASE IF EXISTS example_database;
+-- CREATE DATABASE example_database;
 
-:
+-- Connect to the database before running this part
+-- \c example_database;
+
 CREATE TABLE artists (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(255) NOT NULL
@@ -11,33 +11,34 @@ CREATE TABLE artists (
 
 CREATE TABLE albums (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name VARCHAR(255) NOT NULL
+    name VARCHAR(255) NOT NULL,
+    artist_id INT REFERENCES artists(id)
 );
 
 CREATE TABLE songs (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    artist_id INTEGER REFERENCES artists(id),
-    album_id INTEGER REFERENCES albums(id),
+    artist_id INT REFERENCES artists(id),
+    album_id INT REFERENCES albums(id),
     release_date DATE,
     link VARCHAR(500)
 );
 
 -- Insert Artists
 INSERT INTO artists (name) VALUES
-('The Midnight Riders'),
-
+('The Midnight Riders');
 
 -- Insert Albums
-INSERT INTO albums (name) VALUES
-('Highway Chronicles'),
+INSERT INTO albums (name, artist_id) VALUES
+('Highway Chronicles', 1);
 
 -- Insert Songs
 INSERT INTO songs (title, artist_id, album_id, release_date, link) VALUES
-('Road to Nowhere', 1, 1, '2023-03-15', 'https://example.com/songs/road-to-nowhere'),
+('Road to Nowhere', 1, 1, '2023-03-15', 'https://example.com/songs/road-to-nowhere');
 
+-- Drop users table if exists
+DROP TABLE IF EXISTS users;
 
-DROP table if exists users;
 -- Create Users Table
 CREATE TABLE users (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
