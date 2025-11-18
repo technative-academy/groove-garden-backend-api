@@ -11,7 +11,6 @@ const router = express.Router();
 
 router.use("/auth", authRoutes);
 router.use("/users", usersRoutes);
-router.use("/my-things", myThingsRoutes);
 router.use("/songs", songsRoutes);
 router.use("/playlists", playlistRoutes);
 router.use("/artists", artistsRoutes);
