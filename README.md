@@ -48,7 +48,7 @@ Start the server using the following command:
 npm start
 ```
 
-The server should now be running on [http://localhost:3001](http://localhost:3001)
+The server should now be running on [http://localhost:4000](http://localhost:4000)
 
 ## API endpoints
 
