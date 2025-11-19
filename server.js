@@ -24,7 +24,7 @@ app.get("/", (req, res) => {
 // This is crucial when using HTTP cookies for authentication, as cookies are not shared across domains by default
 // Includes credentials (such as cookies) in requests and responses
 const corsOptions = {
-  origin: "http://localhost:3000",
+  origin: APP_DOMAIN,
   credentials: true,
 };
 
