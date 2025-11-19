@@ -1,149 +1,64 @@
-# DB
+-- Run manually:
+-- DROP DATABASE IF EXISTS example_database;
+-- CREATE DATABASE example_database;
 
-## Create database
+-- Connect to the database before running this part:
+-- \c example_database;
 
-Create database:
+CREATE TABLE artists (
+id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+name VARCHAR(255) NOT NULL
+);
 
-```sql
-CREATE DATABASE yourdatabase;
-```
+CREATE TABLE albums (
+id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+name VARCHAR(255) NOT NULL,
+release_date DATE,
+artist_id INT REFERENCES artists(id)
+);
 
-Switch to database:
+CREATE TABLE songs (
+id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+title VARCHAR(255) NOT NULL,
+artist_id INT REFERENCES artists(id),
+album_id INT REFERENCES albums(id),
+release_date DATE,
+link VARCHAR(500)
+);
 
-```sql
-\c yourdatabase;
-```
+-- Insert Artists
+INSERT INTO artists (name) VALUES
+('The Midnight Riders');
 
-Create user table:
+-- Insert Albums
+INSERT INTO albums (name, artist_id, release_date) VALUES
+('Highway Chronicles', 1, '2023-01-01');
 
-```sql
+-- Insert Songs
+INSERT INTO songs (title, artist_id, album_id, release_date, link) VALUES
+('Road to Nowhere', 1, 1, '2023-03-15', 'https://example.com/songs/road-to-nowhere');
+
+-- Drop users table if exists
+DROP TABLE IF EXISTS users;
+
+-- Create Users Table
 CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(100) NOT NULL UNIQUE,
-  password VARCHAR(100) NOT NULL,
-  bio TEXT
-);
-```
-
-Create things table:
-
-```sql
-CREATE TABLE things (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  description TEXT,
-  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
-);
-```
-
-Create tags table:
-
-```sql
-CREATE TABLE tags (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL UNIQUE
-);
-```
-
-Create tags-things join table:
-
-```sql
-CREATE TABLE tags_things (
-  tag_id INTEGER REFERENCES tags(id) ON DELETE CASCADE,
-  thing_id INTEGER REFERENCES things(id) ON DELETE CASCADE,
-  PRIMARY KEY (tag_id, thing_id)
-);
-```
-
-## Populate database
-
-Insert a User:
-
-```sql
-INSERT INTO users (name, email, password, bio) VALUES ('John Doe', 'john@example.com', 'hashedpassword', 'This is my bio');
-```
-
-Insert a Thing:
-
-```sql
-INSERT INTO things (name, description, user_id) VALUES ('My Thing', 'This is a description', 1);
-```
-
-Insert a Tag:
-
-```sql
-INSERT INTO tags (name) VALUES ('Tag1');
-```
-
-Associate a Tag with a Thing:
-
-```sql
-INSERT INTO tags_things (tag_id, thing_id) VALUES (1, 1);
-```
-
-## Add indexes
-
-```sql
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_things_user_id ON things(user_id);
-```
-
----
-
-SQL:
-
-```sql
--- Create database
-CREATE DATABASE yourdatabase;
-
--- Switch to database
-\c yourdatabase;
-
--- Create users table
-CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(100) NOT NULL UNIQUE,
-  password VARCHAR(100) NOT NULL,
-  bio TEXT
+id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+username VARCHAR(20) NOT NULL UNIQUE,
+password VARCHAR(255) NOT NULL,
+email VARCHAR(100) NOT NULL UNIQUE,
+created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Create things table
-CREATE TABLE things (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  description TEXT,
-  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
+-- Insert Test Users
+INSERT INTO users (username, email, password, created_at)
+VALUES ('john_doe', 'testemail@email.com', 'password123', NOW());
+
+-- Create Playlists Table
+CREATE TABLE playlists (
+id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+title VARCHAR(255) NOT NULL,
+description VARCHAR(255) DEFAULT 'None',
+created_by_user_id INT REFERENCES users(id) ON DELETE CASCADE,
+created_at TIMESTAMP DEFAULT NOW()
 );
-
--- Create tags table
-CREATE TABLE tags (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL UNIQUE
-);
-
--- Create tags-things join table
-CREATE TABLE tags_things (
-  tag_id INTEGER REFERENCES tags(id) ON DELETE CASCADE,
-  thing_id INTEGER REFERENCES things(id) ON DELETE CASCADE,
-  PRIMARY KEY (tag_id, thing_id)
-);
-
--- Populate database
--- Insert a User
-INSERT INTO users (name, email, password, bio) VALUES ('John Doe', 'john@example.com', 'hashedpassword', 'This is my bio');
-
--- Insert a Thing
-INSERT INTO things (name, description, user_id) VALUES ('My Thing', 'This is a description', 1);
-
--- Insert a Tag
-INSERT INTO tags (name) VALUES ('Tag1');
-
--- Associate a Tag with a Thing
-INSERT INTO tags_things (tag_id, thing_id) VALUES (1, 1);
-
--- Add indexes
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_things_user_id ON things(user_id);
-```

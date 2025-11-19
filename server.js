@@ -11,7 +11,7 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 // OpenAPI config
-const swaggerDocument = YAML.load("./openapi.yaml");
+const swaggerDocument = YAML.load("./docs/openapi.yaml");
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 

@@ -21,16 +21,19 @@ npm install
 Create a `.env` file in the root of the project - duplicate the `.env.example` file and replace values with your real values:
 
 ```
-PORT=3001
-DB_USER=your_db_user
-DB_HOST=your_db_host
-DB_NAME=your_db_name
-DB_PW=your_db_password
-DB_PORT=5432
-ACCESS_TOKEN_SECRET=your_access_token_secret
-REFRESH_TOKEN_SECRET=your_refresh_token_secret
-REACT_APP_DOMAIN=http://localhost:3000
+example env file:
+# DB
+DB_USER="user"
+DB_PW="password"
+DB_NAME="example_database"
+DB_URL=postgres://user@localhost:5432/example_database
+PORT=4000
+
+#Other
 NODE_ENV=development
+ACCESS_TOKEN_SECRET="123"
+REFRESH_TOKEN_SECRET="123"
+APP_DOMAIN = http://localhost:3000
 ```
 
 ### Database setup
