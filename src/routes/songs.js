@@ -321,7 +321,6 @@ router.patch("/:songId", async (req, res) => {
   }
 });
 
-// DELETE /artists/:id -> delete an artist by id (auth required)
 router.delete("/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
   try {
