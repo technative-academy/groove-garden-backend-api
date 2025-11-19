@@ -62,3 +62,10 @@ CREATE TABLE playlists (
     created_by_user_id INT REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Create Playlist_song Table
+CREATE TABLE playlist_song (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    playlist_id int references playlists(id),
+    song_id int references songs(id)
+);
