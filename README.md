@@ -1,4 +1,13 @@
-# Backend api for Groove Garden playlist collections app
+# Groove Garden - Backend API
+
+A RESTful API for managing playlist collections, built with Node.js, Express, and PostgreSQL.
+
+## Features
+
+- User authentication with JWT
+- Playlist creation and management
+- Collection organisation
+- Secure password hashing
 
 ## Installation
 
@@ -21,16 +30,19 @@ npm install
 Create a `.env` file in the root of the project - duplicate the `.env.example` file and replace values with your real values:
 
 ```
-PORT=3001
-DB_USER=your_db_user
-DB_HOST=your_db_host
-DB_NAME=your_db_name
-DB_PW=your_db_password
-DB_PORT=5432
-ACCESS_TOKEN_SECRET=your_access_token_secret
-REFRESH_TOKEN_SECRET=your_refresh_token_secret
-REACT_APP_DOMAIN=http://localhost:3000
+example env file:
+# DB
+DB_USER="user"
+DB_PW="password"
+DB_NAME="example_database"
+DB_URL=postgres://user@localhost:5432/example_database
+PORT=4000
+
+#Other
 NODE_ENV=development
+ACCESS_TOKEN_SECRET="123"
+REFRESH_TOKEN_SECRET="123"
+APP_DOMAIN = http://localhost:3000
 ```
 
 ### Database setup
@@ -45,21 +57,11 @@ Start the server using the following command:
 npm start
 ```
 
-The server should now be running on [http://localhost:3001](http://localhost:3001)
+The server should now be running on [http://localhost:4000](http://localhost:4000)
 
 ## API endpoints
 
-See [docs/API.md](docs/API.md) for API endpoints
-
-## Tests
-
-Tests are written with SuperTest, Mocha, Chai and Sinon.
-
-To run them:
-
-```
-npm run test
-```
+swagger docs can be read from either docs/openapi.yaml using swaggereditor or once the server is running at the /docs endpoint
 
 ## Auth
 
