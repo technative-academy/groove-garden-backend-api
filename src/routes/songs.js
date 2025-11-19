@@ -12,7 +12,7 @@ Delete > DELETE
 */
 
 // POST /songs ->
-router.post("/", async (req, res) => {
+router.post("/", authenticateToken, async (req, res) => {
   try {
     let artistId = null;
     let albumId = null;
@@ -322,7 +322,7 @@ router.patch("/:songId", async (req, res) => {
 });
 
 // DELETE /artists/:id -> delete an artist by id (auth required)
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
   try {
     const { rows } = await pool.query(
