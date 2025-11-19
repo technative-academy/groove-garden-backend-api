@@ -1,11 +1,4 @@
-# React Project - example backend
-
-This is an example backend API for the React project.
-
-It allows users to register, log in, and manage their collections of things.
-
-The API is built using Node.js, Express, and PostgreSQL.
-
+# Backend api for Groove Garden playlist collections app
 
 ## Installation
 
@@ -44,7 +37,6 @@ NODE_ENV=development
 
 See [docs/DB.md](docs/DB.md) for SQL for creating the database
 
-
 ## Running the Server
 
 Start the server using the following command:
@@ -55,11 +47,9 @@ npm start
 
 The server should now be running on [http://localhost:3001](http://localhost:3001)
 
-
 ## API endpoints
 
 See [docs/API.md](docs/API.md) for API endpoints
-
 
 ## Tests
 
@@ -70,7 +60,6 @@ To run them:
 ```
 npm run test
 ```
-
 
 ## Auth
 

@@ -1,7 +1,8 @@
--- Run manually: DROP DATABASE IF EXISTS example_database;
+-- Run manually:
+-- DROP DATABASE IF EXISTS example_database;
 -- CREATE DATABASE example_database;
 
--- Connect to the database before running this part
+-- Connect to the database before running this part:
 -- \c example_database;
 
 CREATE TABLE artists (
@@ -12,7 +13,7 @@ CREATE TABLE artists (
 CREATE TABLE albums (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    release_date string,
+    release_date DATE,
     artist_id INT REFERENCES artists(id)
 );
 
@@ -21,7 +22,7 @@ CREATE TABLE songs (
     title VARCHAR(255) NOT NULL,
     artist_id INT REFERENCES artists(id),
     album_id INT REFERENCES albums(id),
-    release_date string,
+    release_date DATE,
     link VARCHAR(500)
 );
 
@@ -30,8 +31,8 @@ INSERT INTO artists (name) VALUES
 ('The Midnight Riders');
 
 -- Insert Albums
-INSERT INTO albums (name, artist_id, release date) VALUES
-('Highway Chronicles', 1);
+INSERT INTO albums (name, artist_id, release_date) VALUES
+('Highway Chronicles', 1, '2023-01-01');
 
 -- Insert Songs
 INSERT INTO songs (title, artist_id, album_id, release_date, link) VALUES
