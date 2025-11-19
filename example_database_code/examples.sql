@@ -2,9 +2,6 @@
 -- DROP DATABASE IF EXISTS example_database;
 -- CREATE DATABASE example_database;
 
--- Connect to the database before running this part:
--- \c example_database;
-
 CREATE TABLE artists (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(255) NOT NULL
@@ -25,7 +22,7 @@ CREATE TABLE songs (
 );
 
 -- Insert Artists
-INSERT INTO artists (id, name) VALUES
+INSERT INTO artists (name) VALUES
 ('The Midnight Riders'),
 ('Luna Park'),
 ('Digital Dreams'),
@@ -33,7 +30,7 @@ INSERT INTO artists (id, name) VALUES
 ('Electric Avenue');
 
 -- Insert Albums
-INSERT INTO albums (id, name) VALUES
+INSERT INTO albums (name) VALUES
 ('Highway Chronicles'),
 ('Moonlit Melodies'),
 ('Binary Beats'),
@@ -41,7 +38,7 @@ INSERT INTO albums (id, name) VALUES
 ('Neon Nights');
 
 -- Insert Songs
-INSERT INTO songs (id, title, artist_id, album_id, release_date, link) VALUES
+INSERT INTO songs (title,artist_id,album_id, release_date, link) VALUES
 ('Road to Nowhere', 1, 1, '2023-03-15', 'https://example.com/songs/road-to-nowhere'),
 ('Sunset Drive', 1, 1, '2023-03-15', 'https://example.com/songs/sunset-drive'),
 ('Midnight Blues', 1, 1, '2023-03-15', 'https://example.com/songs/midnight-blues'),
