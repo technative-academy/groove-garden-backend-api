@@ -206,7 +206,7 @@ router.delete("/:playlist_id/:song_id", authenticateToken, async (req, res) => {
 });
 
 router.delete("/:playlist_id", authenticateToken, async (req, res) => {
-  const { playlist_id, song_id } = req.params;
+  const { playlist_id } = req.params;
   const userId = req.user.id;
 
   try {
@@ -228,13 +228,13 @@ router.delete("/:playlist_id", authenticateToken, async (req, res) => {
     }
 
     const result = await pool.query(
-      `DELETE FROM playlist_song
-       WHERE playlist_id = $1
+      `DELETE FROM playlists
+       WHERE id = $1
        RETURNING *`,
-      [playlist_id, song_id]
+      [playlist_id]
     );
 
-    res.status(200).('playlist deleted'); // Return the deleted row
+    res.status(200).json({ success: "playlist deleted" }); // Return the deleted row
   } catch (error) {
     console.error("Error removing song from playlist:", error);
     res.status(500).json({ error: "Internal Server Error" });
