@@ -1,4 +1,13 @@
-# Backend api for Groove Garden playlist collections app
+# Groove Garden - Backend API
+
+A RESTful API for managing playlist collections, built with Node.js, Express, and PostgreSQL.
+
+## Features
+
+- User authentication with JWT
+- Playlist creation and management
+- Collection organisation
+- Secure password hashing
 
 ## Installation
 
@@ -52,17 +61,7 @@ The server should now be running on [http://localhost:4000](http://localhost:400
 
 ## API endpoints
 
-See [docs/API.md](docs/API.md) for API endpoints
-
-## Tests
-
-Tests are written with SuperTest, Mocha, Chai and Sinon.
-
-To run them:
-
-```
-npm run test
-```
+swagger docs can be read from either docs/openapi.yaml using swaggereditor or once the server is running at the /docs endpoint
 
 ## Auth
 
