@@ -105,6 +105,58 @@ router.post("/:playlist_id/:song_id", authenticateToken, async (req, res) => {
   }
 });
 
+// PATCH /playlists/:id -> update a playlist (title, description). Only owner can update.
+router.patch("/:id", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+  const { title, description } = req.body;
+
+  // Validate inputs if provided
+  if (title !== undefined && (typeof title !== "string" || !title.trim())) {
+    return res.status(400).json({ error: "'title' must be a non-empty string if provided" });
+  }
+  if (description !== undefined && typeof description !== "string") {
+    return res.status(400).json({ error: "'description' must be a string if provided" });
+  }
+
+  const updates = [];
+  const values = [];
+  if (title !== undefined) {
+    updates.push(`title = $${updates.length + 1}`);
+    values.push(title.trim());
+  }
+  if (description !== undefined) {
+    updates.push(`description = $${updates.length + 1}`);
+    values.push(description);
+  }
+
+  if (updates.length === 0) {
+    return res.status(400).json({ error: "At least one field must be provided to update" });
+  }
+
+  try {
+    // Ensure playlist exists and user is owner
+    const ownerCheck = await pool.query(
+      `SELECT created_by_user_id FROM playlists WHERE id = $1`,
+      [id]
+    );
+    if (ownerCheck.rows.length === 0) {
+      return res.status(404).json({ error: "Playlist not found" });
+    }
+    if (ownerCheck.rows[0].created_by_user_id !== userId) {
+      return res.status(403).json({ error: "You do not have permission to modify this playlist" });
+    }
+
+    const query = `UPDATE playlists SET ${updates.join(", ")} WHERE id = $$
+${updates.length + 1} RETURNING *`;
+    const result = await pool.query(query, [...values, id]);
+    return res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error("Error updating playlist:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 router.delete("/:playlist_id/:song_id", authenticateToken, async (req, res) => {
   const { playlist_id, song_id } = req.params;
   const userId = req.user.id;

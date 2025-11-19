@@ -12,6 +12,7 @@ CREATE TABLE artists (
 CREATE TABLE albums (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    release_date string,
     artist_id INT REFERENCES artists(id)
 );
 
@@ -20,7 +21,7 @@ CREATE TABLE songs (
     title VARCHAR(255) NOT NULL,
     artist_id INT REFERENCES artists(id),
     album_id INT REFERENCES albums(id),
-    release_date DATE,
+    release_date string,
     link VARCHAR(500)
 );
 
@@ -29,7 +30,7 @@ INSERT INTO artists (name) VALUES
 ('The Midnight Riders');
 
 -- Insert Albums
-INSERT INTO albums (name, artist_id) VALUES
+INSERT INTO albums (name, artist_id, release date) VALUES
 ('Highway Chronicles', 1);
 
 -- Insert Songs
