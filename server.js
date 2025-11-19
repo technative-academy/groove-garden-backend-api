@@ -9,6 +9,7 @@ import routes from "./src/routes.js";
 
 const app = express();
 const port = process.env.PORT || 4000;
+const domain = process.env.APP_DOMAIN;
 
 // OpenAPI config
 const swaggerDocument = YAML.load("./docs/openapi.yaml");
@@ -24,7 +25,7 @@ app.get("/", (req, res) => {
 // This is crucial when using HTTP cookies for authentication, as cookies are not shared across domains by default
 // Includes credentials (such as cookies) in requests and responses
 const corsOptions = {
-  origin: APP_DOMAIN,
+  origin: domain,
   credentials: true,
 };
 
