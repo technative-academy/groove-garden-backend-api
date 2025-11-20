@@ -1,6 +1,13 @@
 # Groove Garden - Backend API
 
-A RESTful API for managing playlist collections, built with Node.js, Express, and PostgreSQL. Built by Jeremy(https://github.com/Fiarzen), Wahaj(https://github.com/Wahaj-Arsal) and Dinesh(https://github.com/Dnesh88). Front end repo at https://github.com/technative-academy/groove-garden-frontend
+A RESTful API for managing playlist collections, built with Node.js, Express, and PostgreSQL.
+Built by:
+
+- [Jeremy](https://github.com/Fiarzen)
+- [Wahaj](https://github.com/Wahaj-Arsal)
+- [Dinesh](https://github.com/Dnesh88)
+  Front end repo:
+   - https://github.com/technative-academy/groove-garden-frontend
 
 ## Features
 
