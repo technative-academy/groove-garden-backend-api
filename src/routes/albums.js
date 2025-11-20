@@ -42,12 +42,9 @@ router.post("/", authenticateToken, async (req, res) => {
     (typeof release_date !== "string" ||
       !/^\d{4}-\d{2}-\d{2}$/.test(release_date))
   ) {
-    return res
-      .status(400)
-      .json({
-        error:
-          "'release_date' must be a string in format YYYY-MM-DD if provided",
-      });
+    return res.status(400).json({
+      error: "'release_date' must be a string in format YYYY-MM-DD if provided",
+    });
   }
 
   try {
@@ -91,6 +88,25 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+//GET /albums/:id/songs -> list all songs in a specific album
+router.get("/:id/songs", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { rows } = await pool.query(
+      `SELECT songs.id AS song_id, songs.title, artists.name AS artist_name, songs.release_date, songs.link
+      FROM songs
+      JOIN artists ON songs.artist_id = artists.id
+      WHERE songs.album_id = $1
+      ORDER BY songs.release_date DESC`,
+      [id]
+    );
+    return res.json(rows);
+  } catch (error) {
+    console.error("GET /albums/:id/songs failed:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 // PATCH /albums/:id -> update album fields (auth required)
 router.patch("/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
@@ -124,12 +140,10 @@ router.patch("/:id", authenticateToken, async (req, res) => {
       typeof release_date !== "string" ||
       !/^\d{4}-\d{2}-\d{2}$/.test(release_date)
     ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "'release_date' must be a string in format YYYY-MM-DD if provided",
-        });
+      return res.status(400).json({
+        error:
+          "'release_date' must be a string in format YYYY-MM-DD if provided",
+      });
     }
     updates.push(`release_date = $${updates.length + 1}`);
     values.push(release_date);
