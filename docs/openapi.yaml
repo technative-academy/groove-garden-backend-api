@@ -61,6 +61,14 @@ components:
         song_id:
           type: integer
 
+    PlaylistSongDetail:
+      type: object
+      properties:
+        song_id:
+          type: integer
+        title:
+          type: string
+
     Artist:
       type: object
       properties:
@@ -510,6 +518,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '409':
+          description: Song already in playlist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     delete:
       tags: [Playlists]
       summary: Remove song from playlist
@@ -541,6 +555,60 @@ paths:
                 $ref: '#/components/schemas/Error'
         '404':
           description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /playlists/playlist_songs/{id}:
+    get:
+      tags: [Playlists]
+      summary: List songs in a playlist
+      description: Returns the songs for the specified playlist ID
+      operationId: listPlaylistSongs
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Songs in the playlist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlaylistSongDetail'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+
+  /playlists/{playlist_id}:
+    delete:
+      tags: [Playlists]
+      summary: Delete playlist
+      description: Only the playlist owner can delete the playlist
+      operationId: deletePlaylist
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: playlist_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Playlist deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404':
+          description: Playlist not found
           content:
             application/json:
               schema:

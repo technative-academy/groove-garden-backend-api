@@ -26,6 +26,23 @@ router.get("/my_playlists", authenticateToken, async (req, res) => {
   }
 });
 
+router.get("/playlist_songs/:id", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      `SELECT ps.song_id, s.title
+       FROM playlist_song ps
+       JOIN songs s ON s.id = ps.song_id
+       WHERE ps.playlist_id = $1`,
+      [id]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error fetching playlist songs:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 router.get("/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
   try {
@@ -92,13 +109,20 @@ router.post("/:playlist_id/:song_id", authenticateToken, async (req, res) => {
         .json({ error: "You do not have permission to modify this playlist" });
     }
 
-    const result = await pool.query(
-      `INSERT INTO playlist_song (playlist_id, song_id)
-       VALUES ($1, $2)
-       RETURNING *`,
-      [playlist_id, song_id]
-    );
-    res.status(201).json(result.rows[0]);
+    try {
+      const result = await pool.query(
+        `INSERT INTO playlist_song (playlist_id, song_id)
+         VALUES ($1, $2)
+         RETURNING *`,
+        [playlist_id, song_id]
+      );
+      return res.status(201).json(result.rows[0]);
+    } catch (e) {
+      if (e && e.code === "23505") {
+        return res.status(409).json({ error: "Song already in playlist" });
+      }
+      throw e;
+    }
   } catch (error) {
     console.error("Error adding song to playlist:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -113,10 +137,14 @@ router.patch("/:id", authenticateToken, async (req, res) => {
 
   // Validate inputs if provided
   if (title !== undefined && (typeof title !== "string" || !title.trim())) {
-    return res.status(400).json({ error: "'title' must be a non-empty string if provided" });
+    return res
+      .status(400)
+      .json({ error: "'title' must be a non-empty string if provided" });
   }
   if (description !== undefined && typeof description !== "string") {
-    return res.status(400).json({ error: "'description' must be a string if provided" });
+    return res
+      .status(400)
+      .json({ error: "'description' must be a string if provided" });
   }
 
   const updates = [];
@@ -131,7 +159,9 @@ router.patch("/:id", authenticateToken, async (req, res) => {
   }
 
   if (updates.length === 0) {
-    return res.status(400).json({ error: "At least one field must be provided to update" });
+    return res
+      .status(400)
+      .json({ error: "At least one field must be provided to update" });
   }
 
   try {
@@ -144,11 +174,12 @@ router.patch("/:id", authenticateToken, async (req, res) => {
       return res.status(404).json({ error: "Playlist not found" });
     }
     if (ownerCheck.rows[0].created_by_user_id !== userId) {
-      return res.status(403).json({ error: "You do not have permission to modify this playlist" });
+      return res
+        .status(403)
+        .json({ error: "You do not have permission to modify this playlist" });
     }
 
-    const query = `UPDATE playlists SET ${updates.join(", ")} WHERE id = $$
-${updates.length + 1} RETURNING *`;
+    const query = `UPDATE playlists SET ${updates.join(", ")} WHERE id = $${updates.length + 1} RETURNING *`;
     const result = await pool.query(query, [...values, id]);
     return res.status(200).json(result.rows[0]);
   } catch (error) {
@@ -191,6 +222,42 @@ router.delete("/:playlist_id/:song_id", authenticateToken, async (req, res) => {
     }
 
     res.status(200).json(result.rows[0]); // Return the deleted row
+  } catch (error) {
+    console.error("Error removing song from playlist:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.delete("/:playlist_id", authenticateToken, async (req, res) => {
+  const { playlist_id } = req.params;
+  const userId = req.user.id;
+
+  try {
+    const ownerCheck = await pool.query(
+      `SELECT created_by_user_id 
+       FROM playlists 
+       WHERE id = $1`,
+      [playlist_id]
+    );
+
+    if (ownerCheck.rows.length === 0) {
+      return res.status(404).json({ error: "Playlist not found" });
+    }
+
+    if (ownerCheck.rows[0].created_by_user_id !== userId) {
+      return res
+        .status(403)
+        .json({ error: "You do not have permission to modify this playlist" });
+    }
+
+    const result = await pool.query(
+      `DELETE FROM playlists
+       WHERE id = $1
+       RETURNING *`,
+      [playlist_id]
+    );
+
+    res.status(200).json({ success: "playlist deleted" }); // Return the deleted row
   } catch (error) {
     console.error("Error removing song from playlist:", error);
     res.status(500).json({ error: "Internal Server Error" });
