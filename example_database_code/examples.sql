@@ -53,7 +53,7 @@ CREATE TABLE playlists (
 );
 -- Create Playlist_song Table
 CREATE TABLE playlist_song (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    playlist_id int references playlists(id),
-    song_id int references songs(id)
+  playlist_id INT NOT NULL REFERENCES playlists(id) ON DELETE CASCADE,
+  song_id INT NOT NULL REFERENCES songs(id) ON DELETE CASCADE,
+  PRIMARY KEY (playlist_id, song_id)
 );
