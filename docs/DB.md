@@ -1,8 +1,20 @@
--- Run manually:
--- DROP DATABASE IF EXISTS example_database;
--- CREATE DATABASE example_database;
+## Database Setup Instructions
 
--- Connect to the database
--- \c example_database;
+### 1. Create the Database Manually
 
-Then run the sql file 'example_database_code/examples.sql'
+```sql
+ Run manually:
+ DROP DATABASE IF EXISTS example_database;
+ CREATE DATABASE example_database;
+
+ Connect to the database
+ \c example_database;
+```
+
+### 2. Run the SQL File
+
+Execute the SQL script to set up tables and data:
+
+```bash
+psql example_database -f example_database_code/examples.sql
+```
