@@ -1,6 +1,13 @@
 # Groove Garden - Backend API
 
 A RESTful API for managing playlist collections, built with Node.js, Express, and PostgreSQL.
+Built by:
+
+- [Jeremy](https://github.com/Fiarzen)
+- [Wahaj](https://github.com/Wahaj-Arsal)
+- [Dinesh](https://github.com/Dnesh88)
+
+Front end repo: https://github.com/technative-academy/groove-garden-frontend
 
 ## Features
 
@@ -30,7 +37,6 @@ npm install
 Create a `.env` file in the root of the project - duplicate the `.env.example` file and replace values with your real values:
 
 ```
-example env file:
 # DB
 DB_USER="user"
 DB_PW="password"

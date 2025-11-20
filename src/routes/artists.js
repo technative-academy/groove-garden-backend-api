@@ -15,6 +15,42 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET /artists/:id 
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { rows } = await pool.query("SELECT * FROM artists WHERE id = $1", [id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Artist not found" });
+    }
+    return res.json(rows[0]);
+  } catch (error) {
+    console.error("GET /artists/:id failed:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// GET /artists/:id/songs -> list all songs by a specific artist
+router.get("/:id/songs", async (req, res) => {
+  const { id } = req.params;  
+  try {
+    const { rows } = await pool.query(
+      `SELECT songs.id AS song_id,       songs.title,       albums.name AS album_name,       songs.release_date,       songs.link
+      FROM songs
+      JOIN albums ON songs.album_id = albums.ID
+      WHERE songs.artist_id = $1
+      ORDER BY songs.release_date DESC`,
+      [id]
+    );
+    return res.json(rows);
+  } catch (error) {
+    console.error("GET /artists/:id/songs failed:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+
 // POST /artists -> create a new artist (auth required)
 router.post("/", authenticateToken, async (req, res) => {
   const { name } = req.body;
