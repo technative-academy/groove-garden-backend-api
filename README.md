@@ -7,8 +7,7 @@ Built by:
 - [Wahaj](https://github.com/Wahaj-Arsal)
 - [Dinesh](https://github.com/Dnesh88)
 
-  Front end repo:
-  - https://github.com/technative-academy/groove-garden-frontend
+  Front end repo: https://github.com/technative-academy/groove-garden-frontend
 
 ## Features
 
