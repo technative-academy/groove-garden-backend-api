@@ -14,6 +14,13 @@
 ### 2. Run the SQL File
 
 Execute the SQL script to set up tables and data:
+in psql:
+
+```sql
+\i example_database_code/examples.sql
+```
+
+Or outside of psql:
 
 ```bash
 psql example_database -f example_database_code/examples.sql
