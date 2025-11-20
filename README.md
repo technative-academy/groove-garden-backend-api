@@ -37,7 +37,6 @@ npm install
 Create a `.env` file in the root of the project - duplicate the `.env.example` file and replace values with your real values:
 
 ```
-example env file:
 # DB
 DB_USER="user"
 DB_PW="password"
