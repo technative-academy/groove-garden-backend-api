@@ -61,6 +61,14 @@ components:
         song_id:
           type: integer
 
+    PlaylistSongDetail:
+      type: object
+      properties:
+        song_id:
+          type: integer
+        title:
+          type: string
+
     Artist:
       type: object
       properties:
@@ -556,6 +564,8 @@ paths:
     get:
       tags: [Playlists]
       summary: List songs in a playlist
+      description: Returns the songs for the specified playlist ID
+      operationId: listPlaylistSongs
       security: [{ bearerAuth: [] }]
       parameters:
         - name: id
@@ -571,12 +581,7 @@ paths:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    song_id:
-                      type: integer
-                    title:
-                      type: string
+                  $ref: '#/components/schemas/PlaylistSongDetail'
         '401': { $ref: '#/components/responses/UnauthorizedError' }
         '403': { $ref: '#/components/responses/ForbiddenError' }
 
