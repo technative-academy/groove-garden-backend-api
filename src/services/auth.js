@@ -74,7 +74,7 @@ const refreshAccessToken = async (refreshToken) => {
     const userData = {
       id: user.id,
       email: user.email,
-      username: user.usernmae,
+      username: user.username,
     };
     // Generate and return a new access token
     return generateAccessToken(userData);
