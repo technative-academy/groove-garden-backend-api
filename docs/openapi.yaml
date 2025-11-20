@@ -613,7 +613,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-
   /artists:
     get:
       tags: [Artists]
@@ -654,6 +653,7 @@ paths:
                 $ref: "#/components/schemas/Error"
         "401": { $ref: "#/components/responses/UnauthorizedError" }
         "403": { $ref: "#/components/responses/ForbiddenError" }
+
   /artists/{id}/songs:
     get:
       tags: [Artists]
@@ -667,7 +667,24 @@ paths:
             type: integer
       responses:
         "200":
-          description: List artist songs
+          description: List of songs by the artist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    song_id:
+                      type: integer
+                    title:
+                      type: string
+        "404":
+          description: Artist not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /artists/{id}:
     patch:
@@ -864,17 +881,35 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-/albums/{id}/songs:
-  get:
-    tags: [Albums]
-    summary: List all songs in album
-    operationId: listSongsInAlbum
-    parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-    responses:
-      "200":
-        description: List artist songs
+
+  /albums/{id}/songs:
+    get:
+      tags: [Albums]
+      summary: List all songs in album
+      operationId: listSongsInAlbum
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of songs in the album
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    song_id:
+                      type: integer
+                    title:
+                      type: string
+        "404":
+          description: Album not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
