@@ -1,13 +1,13 @@
 ## Database Setup Instructions
 
-### 1. Create the Database Manually
+### 1. Create the PSQL Database
 
 ```sql
- Run manually:
+ -- Run in psql:
  DROP DATABASE IF EXISTS example_database;
  CREATE DATABASE example_database;
 
- Connect to the database
+ -- Connect to the database
  \c example_database;
 ```
 
