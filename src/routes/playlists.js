@@ -27,15 +27,18 @@ router.get("/my_playlists", authenticateToken, async (req, res) => {
 });
 
 router.get("/playlist_songs/:id", authenticateToken, async (req, res) => {
-  const userId = req.user.id;
   const { id } = req.params;
   try {
     const result = await pool.query(
-      "SELECT song_id, songs.title FROM playlist_song JOIN songs on songs.id = playlist_songs.song_id WHERE playlist_id= $1",
+      `SELECT ps.song_id, s.title
+       FROM playlist_song ps
+       JOIN songs s ON s.id = ps.song_id
+       WHERE ps.playlist_id = $1`,
       [id]
     );
     res.json(result.rows);
   } catch (error) {
+    console.error("Error fetching playlist songs:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
@@ -106,13 +109,20 @@ router.post("/:playlist_id/:song_id", authenticateToken, async (req, res) => {
         .json({ error: "You do not have permission to modify this playlist" });
     }
 
-    const result = await pool.query(
-      `INSERT INTO playlist_song (playlist_id, song_id)
-       VALUES ($1, $2)
-       RETURNING *`,
-      [playlist_id, song_id]
-    );
-    res.status(201).json(result.rows[0]);
+    try {
+      const result = await pool.query(
+        `INSERT INTO playlist_song (playlist_id, song_id)
+         VALUES ($1, $2)
+         RETURNING *`,
+        [playlist_id, song_id]
+      );
+      return res.status(201).json(result.rows[0]);
+    } catch (e) {
+      if (e && e.code === "23505") {
+        return res.status(409).json({ error: "Song already in playlist" });
+      }
+      throw e;
+    }
   } catch (error) {
     console.error("Error adding song to playlist:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -169,8 +179,7 @@ router.patch("/:id", authenticateToken, async (req, res) => {
         .json({ error: "You do not have permission to modify this playlist" });
     }
 
-    const query = `UPDATE playlists SET ${updates.join(", ")} WHERE id = $$
-${updates.length + 1} RETURNING *`;
+    const query = `UPDATE playlists SET ${updates.join(", ")} WHERE id = $${updates.length + 1} RETURNING *`;
     const result = await pool.query(query, [...values, id]);
     return res.status(200).json(result.rows[0]);
   } catch (error) {
