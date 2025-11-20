@@ -26,6 +26,20 @@ router.get("/my_playlists", authenticateToken, async (req, res) => {
   }
 });
 
+router.get("/playlist_songs/:id", authenticateToken, async (req, res) => {
+  const userId = req.user.id;
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      "SELECT song_id, songs.title FROM playlist_song JOIN songs on songs.id = playlist_songs.song_id WHERE playlist_id= $1",
+      [id]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 router.get("/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
   try {
