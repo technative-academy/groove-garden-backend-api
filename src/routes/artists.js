@@ -15,6 +15,19 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET /artists/:id 
+
+router.get("/", async (req, res) => {
+  const { id } = req.params
+  try {
+    const { rows } = await pool.query("SELECT * FROM artists WHERE ID = $1", [id]);
+    return res.json(rows);
+  } catch (error) {
+    console.error("GET /artists failed:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 // POST /artists -> create a new artist (auth required)
 router.post("/", authenticateToken, async (req, res) => {
   const { name } = req.body;
