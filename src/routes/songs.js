@@ -17,7 +17,7 @@ router.post("/", authenticateToken, async (req, res) => {
     let artistId = null;
     let albumId = null;
 
-    const { songTitle, songReleaseDate, songLink, artistName, albumName } =
+    const { songTitle, artistName, albumName, songReleaseDate, songLink } =
       req.body;
 
     // check if artist name exists in the artist table. If it exists, retrieve the artists.name for storage
