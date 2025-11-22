@@ -30,10 +30,20 @@ router.get("/playlist_songs/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
   try {
     const result = await pool.query(
-      `SELECT ps.song_id, s.title
-       FROM playlist_song ps
-       JOIN songs s ON s.id = ps.song_id
-       WHERE ps.playlist_id = $1`,
+      `
+  SELECT 
+    ps.song_id,
+    s.title AS song_name,
+    a.name AS artist_name,
+    al.name AS album_name,
+    s.release_date,
+    s.link
+  FROM playlist_song ps
+  JOIN songs s ON ps.song_id = s.id
+  JOIN artists a ON s.artist_id = a.id
+  JOIN albums al ON s.album_id = al.id
+  WHERE ps.playlist_id = $1
+  `,
       [id]
     );
     res.json(result.rows);
@@ -68,6 +78,7 @@ router.get("/:id", authenticateToken, async (req, res) => {
 router.post("/", authenticateToken, async (req, res) => {
   const userId = req.user.id;
   const { title, description } = req.body;
+  console.log(title, description);
 
   if (!title) {
     return res.status(400).json({ error: "Title is required" });
@@ -179,7 +190,9 @@ router.patch("/:id", authenticateToken, async (req, res) => {
         .json({ error: "You do not have permission to modify this playlist" });
     }
 
-    const query = `UPDATE playlists SET ${updates.join(", ")} WHERE id = $${updates.length + 1} RETURNING *`;
+    const query = `UPDATE playlists SET ${updates.join(", ")} WHERE id = $${
+      updates.length + 1
+    } RETURNING *`;
     const result = await pool.query(query, [...values, id]);
     return res.status(200).json(result.rows[0]);
   } catch (error) {
