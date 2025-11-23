@@ -17,11 +17,25 @@ router.post("/", authenticateToken, async (req, res) => {
     let artistId = null;
     let albumId = null;
 
-    const { songTitle, artistName, albumName, songReleaseDate, songLink } =
-      req.body;
+    const { songTitle, artistName, albumName, releaseDate, link } = req.body;
 
     // check if artist name exists in the artist table. If it exists, retrieve the artists.name for storage
     // If its a new artist, insert the artist name in the artists table and then use the artist name for storage
+
+    //check song exists
+    const checkSongExists = await pool.query(
+      `
+      select songs.title as song_title
+      from songs
+      where songs.title = $1
+      `,
+      [songTitle]
+    );
+
+    // if song exists, return error
+    if (checkSongExists.rows.length > 0) {
+      return res.status(400).json({ error: "Song already exists" });
+    }
 
     // query - check artists exists
     const checkArtistExists = await pool.query(
@@ -125,14 +139,14 @@ router.post("/", authenticateToken, async (req, res) => {
     // const result = await pool.query(``);
     // res.json(result.rows);
 
-    //    const { songTitle, songReleaseDate, songLink, artistName, albumName } =
+    //    const { songTitle, releaseDate, link, artistName, albumName } =
 
     const storeSongDetails = await pool.query(
       `
         INSERT INTO songs (title,artist_id,album_id,release_date,link)
         VALUES ($1,$2,$3,$4,$5) RETURNING id,title,artist_id,album_id,release_date,link
         `,
-      [songTitle, artistId, albumId, songReleaseDate, songLink]
+      [songTitle, artistId, albumId, releaseDate, link]
     );
 
     // return res.status(201).json(storeSongDetails.rows[0]);
