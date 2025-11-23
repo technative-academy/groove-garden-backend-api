@@ -32,11 +32,6 @@ router.post("/", authenticateToken, async (req, res) => {
       [songTitle]
     );
 
-    // if song exists, return error
-    if (checkSongExists.rows.length > 0) {
-      return res.status(400).json({ error: "Song already exists" });
-    }
-
     // query - check artists exists
     const checkArtistExists = await pool.query(
       `
@@ -46,6 +41,11 @@ router.post("/", authenticateToken, async (req, res) => {
       `,
       [artistName]
     );
+
+    // if song exists, and artist exists return error
+    if (checkSongExists.rows.length > 0 && checkArtistExists.rows.length > 0) {
+      return res.status(400).json({ error: "Song already exists" });
+    }
 
     /* artist does not exists */
 
