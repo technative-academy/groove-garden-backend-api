@@ -76,6 +76,10 @@ components:
           type: integer
         name:
           type: string
+        posted_by_user_id:
+          type: integer
+          description: ID of the user who posted the artist
+
 
     Album:
       type: object
@@ -94,6 +98,9 @@ components:
         artist_name:
           type: string
           description: Resolved artist name (if available)
+        posted_by_user_id:
+          type: integer
+          description: ID of the user who posted the album
 
     RegisterRequest:
       type: object
