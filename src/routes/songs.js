@@ -48,16 +48,16 @@ router.post("/", authenticateToken, async (req, res) => {
       return res.status(400).json({ error: "Song already exists" });
     }
 
-    /* artist does not exists */
+    /* artist does not exist */
 
     if (checkArtistExists.rows.length === 0) {
       // create new artist
       const addNewArtist = await pool.query(
         `
-        INSERT INTO artists (name)
-        VALUES ($1);
+        INSERT INTO artists (name, posted_by_user_id)
+        VALUES ($1, $2);
         `,
-        [artistName]
+        [artistName, userId]
       );
 
       // get newly added artist's id
@@ -107,10 +107,10 @@ router.post("/", authenticateToken, async (req, res) => {
       // create new album
       const addNewAlbum = await pool.query(
         `
-        INSERT INTO albums (name)
-        VALUES ($1);
+        INSERT INTO albums (name, posted_by_user_id)
+        VALUES ($1, $2);
         `,
-        [albumName]
+        [albumName, userId]
       );
 
       // get newly added album's id
@@ -137,20 +137,15 @@ router.post("/", authenticateToken, async (req, res) => {
       albumId = getAlbumId.rows[0].id;
     }
 
-    // const result = await pool.query(``);
-    // res.json(result.rows);
-
-    //    const { songTitle, releaseDate, link, artistName, albumName } =
 
     const storeSongDetails = await pool.query(
       `
-        INSERT INTO songs (title,artist_id,album_id,release_date,link)
+        INSERT INTO songs (title,artist_id,album_id,release_date,link, posted_by_user_id)
         VALUES ($1,$2,$3,$4,$5) RETURNING id,title,artist_id,album_id,release_date,link, posted_by_user_id
         `,
       [songTitle, artistId, albumId, releaseDate, link, userId]
     );
 
-    // return res.status(201).json(storeSongDetails.rows[0]);
     return res.status(201).json(storeSongDetails.rows);
   } catch (error) {
     // res.status(500).json({ error: "Internal Server Error" });
@@ -167,7 +162,7 @@ router.get("/", async (req, res) => {
              artists.name AS artist_name,
              albums.name AS album_name,
              songs.release_date,
-             songs.link
+             songs.link,
              songs.posted_by_user_id
       FROM songs
       JOIN artists ON songs.artist_id = artists.id
@@ -181,7 +176,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET /songs/:songTitle -> list specific song with this name
+// GET /songs?songTitle=... -> list specific songs with this name
 router.get("/search", async (req, res) => {
   const { songTitle } = req.query;
   try {
@@ -206,143 +201,150 @@ router.get("/search", async (req, res) => {
   }
 });
 
-// PATCH /songs/:songId -> update specific song with this name
-router.patch("/:songId", async (req, res) => {
+// PATCH /songs/:songId -> Update a specific song
+router.patch("/:songId", authenticateToken, async (req, res) => {
+  const { songId } = req.params;
+  const userId = req.user.id;
+  const client = await pool.connect();
+
   try {
-    let artistId = null;
-    let albumId = null;
+    await client.query('BEGIN');
 
-    const { songTitle, songReleaseDate, songLink, artistName, albumName } =
-      req.body;
-
-    // check if artist name exists in the artist table. If it exists, retrieve the artists.name for storage
-    // If its a new artist, insert the artist name in the artists table and then use the artist name for storage
-
-    // query - check artists exists
-    const checkArtistExists = await pool.query(
-      `
-      select artists.name as artist_name
-      from artists
-      where artists.name = $1
-      `,
-      [artistName]
+    // Check if song exists and user has permission
+    const ownerCheck = await client.query(
+      `SELECT posted_by_user_id FROM songs WHERE id = $1`,
+      [songId]
     );
 
-    /* artist does not exists */
-
-    if (checkArtistExists.rows.length === 0) {
-      // create new artist
-      const addNewArtist = await pool.query(
-        `
-        INSERT INTO artists (name)
-        VALUES ($1);
-        `,
-        [artistName]
-      );
-
-      // get newly added artist's id
-      const newlyAddedArtistId = await pool.query(
-        `
-        SELECT artists.id FROM artists 
-        WHERE artists.name = $1
-        `,
-        [artistName]
-      );
-
-      artistId = newlyAddedArtistId.rows[0].id;
-
-      // // store details into songs table
-      // const saveSongDetails = await pool.query(
-      //   `
-      //   INSERT INTO songs (title, $1, )
-      //   VALUES ($1);
-      //   `,
-      //   [newlyAddedArtistId]
-      // );
-
-      // return res.status(404).json({ error: "Thing not found" });
-    } else {
-      const getArtistId = await pool.query(
-        `
-        SELECT artists.id FROM artists 
-        WHERE artists.name = $1
-        `,
-        [artistName]
-      );
-      artistId = getArtistId.rows[0].id;
+    if (ownerCheck.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: "Song not found" });
     }
 
-    // query - check album exists
-    const checkAlbumExists = await pool.query(
-      `
-      select albums.name from albums
-      where albums.name = $1
-      `,
-      [albumName]
-    );
-
-    /* album does not exists */
-
-    if (checkAlbumExists.rows.length === 0) {
-      // create new album
-      const addNewAlbum = await pool.query(
-        `
-        INSERT INTO albums (name)
-        VALUES ($1);
-        `,
-        [albumName]
-      );
-
-      // get newly added album's id
-      const newlyAddedAlbumId = await pool.query(
-        `
-        SELECT ALBUMS.ID FROM ALBUMS 
-        WHERE ALBUMS.NAME = $1
-        `,
-        [albumName]
-      );
-
-      albumId = newlyAddedAlbumId.rows[0].id;
-
-      // return res.status(404).json({ error: "Thing not found" });
-    } else {
-      const getAlbumId = await pool.query(
-        `
-        SELECT ALBUMS.ID FROM ALBUMS
-        WHERE ALBUMS.NAME = $1
-        `,
-        [albumName]
-      );
-
-      albumId = getAlbumId.rows[0].id;
+    if (ownerCheck.rows[0].posted_by_user_id !== userId) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ 
+        error: "You do not have permission to modify this song" 
+      });
     }
 
-    // const result = await pool.query(``);
-    // res.json(result.rows);
+    const { songTitle, artistName, albumName, releaseDate, link } = req.body;
 
-    //    const { songTitle, songReleaseDate, songLink, artistName, albumName } =
+    // Handle artist if provided
+    let artistId;
+    if (artistName) {
+      const existingArtist = await client.query(
+        `SELECT id FROM artists WHERE name = $1`,
+        [artistName]
+      );
 
-    const storeSongDetails = await pool.query(
-      `UPDATE songs
-      SET title = $1, column2 = value2, ...
-      WHERE songs.id = $1;
+      if (existingArtist.rows.length === 0) {
+        const newArtist = await client.query(
+          `INSERT INTO artists (name, posted_by_user_id)
+           VALUES ($1, $2) RETURNING id`,
+          [artistName, userId]
+        );
+        artistId = newArtist.rows[0].id;
+      } else {
+        artistId = existingArtist.rows[0].id;
+      }
+    }
 
-        INSERT INTO songs (title,artist_id,album_id,release_date,link)
-        VALUES ($1,$2,$3,$4,$5) RETURNING title,artist_id,album_id,release_date,link
-        `,
-      [songTitle, artistId, albumId, songReleaseDate, songLink]
-    );
+    // Handle album if provided
+    let albumId;
+    if (albumName) {
+      const existingAlbum = await client.query(
+        `SELECT id FROM albums WHERE name = $1`,
+        [albumName]
+      );
 
-    // return res.status(201).json(storeSongDetails.rows[0]);
-    return res.status(201).json(storeSongDetails.rows);
+      if (existingAlbum.rows.length === 0) {
+        const newAlbum = await client.query(
+          `INSERT INTO albums (name, posted_by_user_id)
+           VALUES ($1, $2) RETURNING id`,
+          [albumName, userId]
+        );
+        albumId = newAlbum.rows[0].id;
+      } else {
+        albumId = existingAlbum.rows[0].id;
+      }
+    }
+
+    // Build dynamic UPDATE query
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (songTitle) {
+      updates.push(`title = $${paramCount++}`);
+      values.push(songTitle);
+    }
+    if (artistId) {
+      updates.push(`artist_id = $${paramCount++}`);
+      values.push(artistId);
+    }
+    if (albumId) {
+      updates.push(`album_id = $${paramCount++}`);
+      values.push(albumId);
+    }
+    if (releaseDate) {
+      updates.push(`release_date = $${paramCount++}`);
+      values.push(releaseDate);
+    }
+    if (link) {
+      updates.push(`link = $${paramCount++}`);
+      values.push(link);
+    }
+
+    if (updates.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: "No fields to update" });
+    }
+
+    values.push(songId);
+    const updateQuery = `
+      UPDATE songs
+      SET ${updates.join(', ')}
+      WHERE id = $${paramCount}
+      RETURNING id, title, artist_id, album_id, release_date, link, posted_by_user_id
+    `;
+
+    const result = await client.query(updateQuery, values);
+    await client.query('COMMIT');
+
+    return res.status(200).json(result.rows[0]);
+
   } catch (error) {
-    // res.status(500).json({ error: "Internal Server Error" });
-    res.status(500).json({ error: error });
+    await client.query('ROLLBACK');
+    console.error("PATCH /songs/:songId failed:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  } finally {
+    client.release();
   }
 });
 
 router.delete("/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
+    const { userId } = req.user.id;
+      try {
+    
+      const ownerCheck = await pool.query(
+      `SELECT posted_by_user_id 
+       FROM songs 
+       WHERE id = $1`,
+      [song_id]
+    );
+
+    if (ownerCheck.rows.length === 0) {
+      return res.status(404).json({ error: "Song not found" });
+    }
+
+    if (ownerCheck.rows[0].posted_by_user_id !== userId) {
+      return res
+        .status(403)
+        .json({ error: "You do not have permission to modify this song" });
+    }
+
   try {
     const { rows } = await pool.query(
       "DELETE FROM songs WHERE id = $1 RETURNING *",
