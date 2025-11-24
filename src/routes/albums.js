@@ -51,8 +51,9 @@ router.post("/", authenticateToken, async (req, res) => {
 
   try {
     // Check if album already exists
-    const existing = await pool.query("SELECT id FROM albums WHERE name = $1", [
+    const existing = await pool.query("SELECT id FROM albums WHERE name = $1 AND artist_id = $2", [
       name.trim(),
+      artist_id ?? null,
     ]);
 
     if (existing.rows.length > 0) {
