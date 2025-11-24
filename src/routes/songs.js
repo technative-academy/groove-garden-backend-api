@@ -16,6 +16,7 @@ router.post("/", authenticateToken, async (req, res) => {
   try {
     let artistId = null;
     let albumId = null;
+    let userId = req.user.id;
 
     const { songTitle, artistName, albumName, releaseDate, link } = req.body;
 
@@ -144,9 +145,9 @@ router.post("/", authenticateToken, async (req, res) => {
     const storeSongDetails = await pool.query(
       `
         INSERT INTO songs (title,artist_id,album_id,release_date,link)
-        VALUES ($1,$2,$3,$4,$5) RETURNING id,title,artist_id,album_id,release_date,link
+        VALUES ($1,$2,$3,$4,$5) RETURNING id,title,artist_id,album_id,release_date,link, posted_by_user_id
         `,
-      [songTitle, artistId, albumId, releaseDate, link]
+      [songTitle, artistId, albumId, releaseDate, link, userId]
     );
 
     // return res.status(201).json(storeSongDetails.rows[0]);
@@ -167,6 +168,7 @@ router.get("/", async (req, res) => {
              albums.name AS album_name,
              songs.release_date,
              songs.link
+             songs.posted_by_user_id
       FROM songs
       JOIN artists ON songs.artist_id = artists.id
       JOIN albums  ON songs.album_id  = albums.id
@@ -184,11 +186,15 @@ router.get("/search", async (req, res) => {
   const { songTitle } = req.query;
   try {
     const result = await pool.query(
-      `SELECT  songs.title AS song_name,  artists.name AS artist_name,  albums.name AS album_name,  songs.release_date,  songs.link 
-      FROM songs 
-      JOIN artists ON songs.artist_id = artists.id 
-      JOIN albums ON songs.album_id = albums.id 
-      WHERE songs.title = $1;`,
+      `SELECT songs.title AS song_name,  
+              artists.name AS artist_name,  
+              albums.name AS album_name,  songs.release_date,  
+              songs.link , 
+              songs.posted_by_user_id
+              FROM songs 
+              JOIN artists ON songs.artist_id = artists.id 
+              JOIN albums ON songs.album_id = albums.id 
+              WHERE songs.title = $1;`,
       [songTitle]
     );
     if (result.rows.length === 0) {
