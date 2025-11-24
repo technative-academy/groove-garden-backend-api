@@ -325,14 +325,15 @@ router.patch("/:songId", authenticateToken, async (req, res) => {
 
 router.delete("/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
-    const { userId } = req.user.id;
-      try {
-    
-      const ownerCheck = await pool.query(
+  const userId = req.user.id; 
+
+  try {
+    // Check if song exists and user has permission
+    const ownerCheck = await pool.query(
       `SELECT posted_by_user_id 
        FROM songs 
        WHERE id = $1`,
-      [song_id]
+      [id] 
     );
 
     if (ownerCheck.rows.length === 0) {
@@ -340,22 +341,24 @@ router.delete("/:id", authenticateToken, async (req, res) => {
     }
 
     if (ownerCheck.rows[0].posted_by_user_id !== userId) {
-      return res
-        .status(403)
-        .json({ error: "You do not have permission to modify this song" });
+      return res.status(403).json({ 
+        error: "You do not have permission to delete this song" 
+      });
     }
 
-  try {
+    // Delete the song
     const { rows } = await pool.query(
       "DELETE FROM songs WHERE id = $1 RETURNING *",
       [id]
     );
-    if (rows.length === 0) {
-      return res.status(404).json({ error: "Artist not found" });
-    }
-    return res.status(200).json(rows[0]);
+
+    return res.status(200).json({ 
+      message: "Song deleted successfully",
+      song: rows[0] 
+    });
+
   } catch (error) {
-    console.error("DELETE /artists/:id failed:", error);
+    console.error("DELETE /songs/:id failed:", error); // Fixed: reference songs not artists
     return res.status(500).json({ error: "Internal Server Error" });
   }
 });
