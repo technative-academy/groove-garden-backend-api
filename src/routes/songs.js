@@ -16,7 +16,7 @@ router.post("/", authenticateToken, async (req, res) => {
   try {
     let artistId = null;
     let albumId = null;
-    let userId = req.user.id;
+    const userId = req.user.id;
 
     const { songTitle, artistName, albumName, releaseDate, link } = req.body;
 
