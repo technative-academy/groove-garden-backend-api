@@ -7,7 +7,7 @@ import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import routes from "./src/routes.js";
 import rateLimit from "express-rate-limit";
-
+const app = express();
 // Rate limiting
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MINUTES || 15) * 60 * 1000,
@@ -19,7 +19,6 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-const app = express();
 const port = process.env.PORT || 4000;
 const domain = process.env.APP_DOMAIN;
 
