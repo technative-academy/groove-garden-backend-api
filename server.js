@@ -6,14 +6,25 @@ import cookieParser from "cookie-parser";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import routes from "./src/routes.js";
-
+import rateLimit from "express-rate-limit";
 const app = express();
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MINUTES || 15) * 60 * 1000,
+  limit: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || 100),
+  message: "Too many requests from this IP, please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(limiter);
+
 const port = process.env.PORT || 4000;
 const domain = process.env.APP_DOMAIN;
 
 // OpenAPI config
 const swaggerDocument = YAML.load("./docs/openapi.yaml");
-
+app.set("trust proxy", 1);
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Health check
