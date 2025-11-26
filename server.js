@@ -7,7 +7,13 @@ import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import routes from "./src/routes.js";
 import rateLimit from "express-rate-limit";
+
 const app = express();
+const port = process.env.PORT || 4000;
+const domain = process.env.APP_DOMAIN;
+
+app.options("*", cors({ origin: domain, credentials: true }));
+
 // Rate limiting
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MINUTES || 15) * 60 * 1000,
@@ -17,10 +23,22 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.use(limiter);
+// Skip rate-limiting OPTIONS
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS") return next();
+  next();
+});
 
-const port = process.env.PORT || 4000;
-const domain = process.env.APP_DOMAIN;
+app.use(
+  cors({
+    origin: domain,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+app.use(limiter);
 
 // OpenAPI config
 const swaggerDocument = YAML.load("./docs/openapi.yaml");
@@ -32,23 +50,8 @@ app.get("/", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is running" });
 });
 
-// Define CORS options to allow requests from the specified origin and include credentials
-// This is crucial when using HTTP cookies for authentication, as cookies are not shared across domains by default
-// Includes credentials (such as cookies) in requests and responses
-const corsOptions = {
-  origin: domain,
-  credentials: true,
-};
-
 app.use(cors(corsOptions));
-// app.use((req, res, next) => {
-//   res.setHeader("Access-Control-Allow-Origin", "*");
-//   res.header(
-//     "Access-Control-Allow-Headers",
-//     "Origin, X-Requested-With, Content-Type, Accept"
-//   );
-//   next();
-// });
+
 app.use(express.json());
 app.use(cookieParser());
 
