@@ -23,30 +23,139 @@ router.post("/", authenticateToken, async (req, res) => {
     // check if artist name exists in the artist table. If it exists, retrieve the artists.name for storage
     // If its a new artist, insert the artist name in the artists table and then use the artist name for storage
 
-    //check song exists
-    const checkSongExists = await pool.query(
-      `
-      select songs.title as song_title
-      from songs
-      where songs.title = $1
-      `,
-      [songTitle]
-    );
+    // POST /songs ->
+    router.post("/", authenticateToken, async (req, res) => {
+      try {
+        let artistId = null;
+        let albumId = null;
+        const userId = req.user.id;
 
-    // query - check artists exists
-    const checkArtistExists = await pool.query(
-      `
-      select artists.name as artist_name
-      from artists
-      where artists.name = $1
-      `,
-      [artistName]
-    );
+        const { songTitle, artistName, albumName, releaseDate, link } =
+          req.body;
 
-    // if song exists, and artist exists return error
-    if (checkSongExists.rows.length > 0 && checkArtistExists.rows.length > 0) {
-      return res.status(400).json({ error: "Song already exists" });
-    }
+        // check if artist name exists in the artist table. If it exists, retrieve the artists.name for storage
+        // If its a new artist, insert the artist name in the artists table and then use the artist name for storage
+
+        // Check if same song title already exists for the same artist
+        const checkSongAndArtist = await pool.query(
+          `
+    SELECT songs.id
+    FROM songs
+    JOIN artists ON songs.artist_id = artists.id
+    WHERE songs.title = $1 AND artists.name = $2
+  `,
+          [songTitle, artistName]
+        );
+
+        if (checkSongAndArtist.rows.length > 0) {
+          return res
+            .status(400)
+            .json({ error: "Song by this artist already exists" });
+        }
+
+        /* artist does not exist */
+
+        if (checkArtistExists.rows.length === 0) {
+          // create new artist
+          const addNewArtist = await pool.query(
+            `
+        INSERT INTO artists (name, posted_by_user_id)
+        VALUES ($1, $2);
+        `,
+            [artistName, userId]
+          );
+
+          // get newly added artist's id
+          const newlyAddedArtistId = await pool.query(
+            `
+        SELECT artists.id FROM artists 
+        WHERE artists.name = $1
+        `,
+            [artistName]
+          );
+
+          artistId = newlyAddedArtistId.rows[0].id;
+
+          // // store details into songs table
+          // const saveSongDetails = await pool.query(
+          //   `
+          //   INSERT INTO songs (title, $1, )
+          //   VALUES ($1);
+          //   `,
+          //   [newlyAddedArtistId]
+          // );
+
+          // return res.status(404).json({ error: "Thing not found" });
+        } else {
+          const getArtistId = await pool.query(
+            `
+        SELECT artists.id FROM artists 
+        WHERE artists.name = $1
+        `,
+            [artistName]
+          );
+          artistId = getArtistId.rows[0].id;
+        }
+
+        // query - check album exists
+        const checkAlbumExists = await pool.query(
+          `
+      select albums.name from albums
+      where albums.name = $1
+      `,
+          [albumName]
+        );
+
+        /* album does not exists */
+
+        if (checkAlbumExists.rows.length === 0) {
+          // create new album
+          const addNewAlbum = await pool.query(
+            `
+        INSERT INTO albums (name, posted_by_user_id)
+        VALUES ($1, $2);
+        `,
+            [albumName, userId]
+          );
+
+          // get newly added album's id
+          const newlyAddedAlbumId = await pool.query(
+            `
+        SELECT ALBUMS.ID FROM ALBUMS 
+        WHERE ALBUMS.NAME = $1
+        `,
+            [albumName]
+          );
+
+          albumId = newlyAddedAlbumId.rows[0].id;
+
+          // return res.status(404).json({ error: "Thing not found" });
+        } else {
+          const getAlbumId = await pool.query(
+            `
+        SELECT ALBUMS.ID FROM ALBUMS
+        WHERE ALBUMS.NAME = $1
+        `,
+            [albumName]
+          );
+
+          albumId = getAlbumId.rows[0].id;
+        }
+
+        const storeSongDetails = await pool.query(
+          `
+        INSERT INTO songs (title,artist_id,album_id,release_date,link, posted_by_user_id)
+        VALUES ($1,$2,$3,$4,$5,$6) RETURNING id,title,artist_id,album_id,release_date,link, posted_by_user_id
+        `,
+          [songTitle, artistId, albumId, releaseDate, link, userId]
+        );
+
+        return res.status(201).json(storeSongDetails.rows);
+      } catch (error) {
+        // res.status(500).json({ error: "Internal Server Error" });
+        res.status(500).json({ error: error });
+      }
+    });
 
     /* artist does not exist */
 
@@ -137,7 +246,6 @@ router.post("/", authenticateToken, async (req, res) => {
       albumId = getAlbumId.rows[0].id;
     }
 
-
     const storeSongDetails = await pool.query(
       `
         INSERT INTO songs (title,artist_id,album_id,release_date,link, posted_by_user_id)
@@ -208,7 +316,7 @@ router.patch("/:songId", authenticateToken, async (req, res) => {
   const client = await pool.connect();
 
   try {
-    await client.query('BEGIN');
+    await client.query("BEGIN");
 
     // Check if song exists and user has permission
     const ownerCheck = await client.query(
@@ -217,14 +325,14 @@ router.patch("/:songId", authenticateToken, async (req, res) => {
     );
 
     if (ownerCheck.rows.length === 0) {
-      await client.query('ROLLBACK');
+      await client.query("ROLLBACK");
       return res.status(404).json({ error: "Song not found" });
     }
 
     if (ownerCheck.rows[0].posted_by_user_id !== userId) {
-      await client.query('ROLLBACK');
-      return res.status(403).json({ 
-        error: "You do not have permission to modify this song" 
+      await client.query("ROLLBACK");
+      return res.status(403).json({
+        error: "You do not have permission to modify this song",
       });
     }
 
@@ -297,25 +405,24 @@ router.patch("/:songId", authenticateToken, async (req, res) => {
     }
 
     if (updates.length === 0) {
-      await client.query('ROLLBACK');
+      await client.query("ROLLBACK");
       return res.status(400).json({ error: "No fields to update" });
     }
 
     values.push(songId);
     const updateQuery = `
       UPDATE songs
-      SET ${updates.join(', ')}
+      SET ${updates.join(", ")}
       WHERE id = $${paramCount}
       RETURNING id, title, artist_id, album_id, release_date, link, posted_by_user_id
     `;
 
     const result = await client.query(updateQuery, values);
-    await client.query('COMMIT');
+    await client.query("COMMIT");
 
     return res.status(200).json(result.rows[0]);
-
   } catch (error) {
-    await client.query('ROLLBACK');
+    await client.query("ROLLBACK");
     console.error("PATCH /songs/:songId failed:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   } finally {
@@ -325,7 +432,7 @@ router.patch("/:songId", authenticateToken, async (req, res) => {
 
 router.delete("/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const userId = req.user.id; 
+  const userId = req.user.id;
 
   try {
     // Check if song exists and user has permission
@@ -333,7 +440,7 @@ router.delete("/:id", authenticateToken, async (req, res) => {
       `SELECT posted_by_user_id 
        FROM songs 
        WHERE id = $1`,
-      [id] 
+      [id]
     );
 
     if (ownerCheck.rows.length === 0) {
@@ -341,8 +448,8 @@ router.delete("/:id", authenticateToken, async (req, res) => {
     }
 
     if (ownerCheck.rows[0].posted_by_user_id !== userId) {
-      return res.status(403).json({ 
-        error: "You do not have permission to delete this song" 
+      return res.status(403).json({
+        error: "You do not have permission to delete this song",
       });
     }
 
@@ -352,11 +459,10 @@ router.delete("/:id", authenticateToken, async (req, res) => {
       [id]
     );
 
-    return res.status(200).json({ 
+    return res.status(200).json({
       message: "Song deleted successfully",
-      song: rows[0] 
+      song: rows[0],
     });
-
   } catch (error) {
     console.error("DELETE /songs/:id failed:", error); // Fixed: reference songs not artists
     return res.status(500).json({ error: "Internal Server Error" });
