@@ -1,4 +1,4 @@
-﻿openapi: 3.0.3
+﻿﻿openapi: 3.0.3
 info:
   title: Groove Garden Backend API
   description: API for authentication, users, playlists, artists, and albums
@@ -40,7 +40,76 @@ components:
         email:
           type: string
           format: email
+    Song:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 12
+        title:
+          type: string
+          example: "Blinding Lights"
+        artist_id:
+          type: integer
+          example: 3
+        album_id:
+          type: integer
+          example: 5
+        release_date:
+          type: string
+          format: date
+          example: "2020-01-01"
+        link:
+          type: string
+          example: "https://youtube.com/example"
+        posted_by_user_id:
+          type: integer
+          example: 7
 
+    SongCreate:
+      type: object
+      required:
+        - songTitle
+        - artistName
+        - albumName
+      properties:
+        songTitle:
+          type: string
+          example: "Blinding Lights"
+        artistName:
+          type: string
+          example: "The Weeknd"
+        albumName:
+          type: string
+          example: "After Hours"
+        releaseDate:
+          type: string
+          format: date
+          example: "2020-01-01"
+        link:
+          type: string
+          example: "https://youtube.com/example"
+
+    SongUpdate:
+      type: object
+      description: At least one field must be provided.
+      properties:
+        songTitle:
+          type: string
+          example: "New Song Title"
+        artistName:
+          type: string
+          example: "New Artist"
+        albumName:
+          type: string
+          example: "New Album"
+        releaseDate:
+          type: string
+          format: date
+          example: "2021-05-12"
+        link:
+          type: string
+          example: "https://spotify.com/example"
     Playlist:
       type: object
       properties:
@@ -758,7 +827,148 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /songs:
+    post:
+      tags: [Songs]
+      summary: Add a new song
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SongCreate'
+      responses:
+        "201":
+          description: Song created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Song'
+        "400":
+          description: Song already exists
+        "500":
+          description: Internal server error
 
+    get:
+      tags: [Songs]
+      summary: List all songs
+      responses:
+        "200":
+          description: List of songs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    song_id:
+                      type: integer
+                    song_name:
+                      type: string
+                    artist_name:
+                      type: string
+                    album_name:
+                      type: string
+                    release_date:
+                      type: string
+                      format: date
+                    link:
+                      type: string
+                    posted_by_user_id:
+                      type: integer
+        "500":
+          description: Internal server error
+
+  /songs/search:
+    get:
+      tags: [Songs]
+      summary: Search songs by exact title
+      parameters:
+        - name: songTitle
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Song found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Song'
+        "404":
+          description: Song not found
+        "500":
+          description: Internal server error
+
+  /songs/{songId}:
+    patch:
+      tags: [Songs]
+      summary: Update a song
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: songId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SongUpdate'
+      responses:
+        "200":
+          description: Song updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Song'
+        "400":
+          description: No fields to update
+        "403":
+          description: User does not own the song
+        "404":
+          description: Song not found
+        "500":
+          description: Internal server error
+
+    delete:
+      tags: [Songs]
+      summary: Delete a song
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: songId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Song deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  song:
+                    $ref: '#/components/schemas/Song'
+        "403":
+          description: User does not own the song
+        "404":
+          description: Song not found
+        "500":
+          description: Internal server error
   /albums:
     get:
       tags: [Albums]
